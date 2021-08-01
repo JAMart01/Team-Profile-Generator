@@ -8,25 +8,21 @@
 
 
 
-// WHEN I start the application
-// THEN I am prompted to enter the team manager’s name, employee ID, email address, and office number
-// WHEN I enter the team manager’s name, employee ID, email address, and office number
-// THEN I am presented with a menu with the option to add an engineer or an intern or to finish building my team
-// WHEN I select the engineer option
-// THEN I am prompted to enter the engineer’s name, ID, email, and GitHub username, and I am taken back to the menu
-// WHEN I select the intern option
-// THEN I am prompted to enter the intern’s name, ID, email, and school, and I am taken back to the menu
 // WHEN I decide to finish building my team
 // THEN I exit the application, and the HTML is generated
-
 const inquirer = require('inquirer');
 const Engineer = require('./lib/Engineer');
 const Manager = require('./lib/Manager');
 const Intern = require('./lib/Intern');
+const fs = require('fs');
+const generatePage = require("./src/page-template");
 
 
+// empty array to hold all of the team member data
+const teamMembers = [];
 
 const createManager = () => {
+
     return inquirer.prompt([
         {
             type: 'input',
@@ -81,13 +77,151 @@ const createManager = () => {
             }
         }
     ])
-    .then((answer) => {
-        const manager = new Manager(answer.name, answer.id, answer.email, answer.officeNumber);
+    .then( answer => {
+        let manager = new Manager(answer.name, answer.id, answer.email, answer.officeNumber);
+        
+        teamMembers.push(manager);
 
         console.log(manager);
-    });
+        console.log(teamMembers);
+    })
+    .then(createEmployee);
 
 };
+
+const createEngineer = function() {
+    return inquirer.prompt([
+        {
+            type: 'input',
+            name: 'name',
+            message: 'What is the Engineers name?',
+            validate: engNameInput => {
+                if (engNameInput) {
+                    return true;
+                } else {
+                    console.log('Please enter the Engineers name!');
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name: 'id',
+            message: 'What is this Engineers ID?',
+            validate: engIdInput => {
+                if (engIdInput) {
+                    return true;
+                } else {
+                    console.log('Please enter the engineers ID!');
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name: 'email',
+            message: 'What is this Engineers email?',
+            validate: engEmailInput => {
+                if (engEmailInput) {
+                    return true;
+                } else {
+                    console.log('Please enter the engineers email address!');
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name: 'github',
+            message: 'What is this engineers github?',
+            validate: githubInput => {
+                if (githubInput) {
+                    return true;
+                } else {
+                    console.log('Please enter the engineers github!');
+                    return false; 
+                }
+            }
+        }    
+    ])
+    .then( answer => {
+        let engineer = new Engineer(answer.name, answer.id, answer.email, answer.github);
+
+        teamMembers.push(engineer);
+
+        console.log(engineer);
+        console.log(teamMembers);
+    })
+    .then(createEmployee);
+};
+
+const createIntern = function () {
+    return inquirer.prompt([
+        {
+            type: 'input',
+            name: 'name',
+            message: 'What is the Interns name?',
+            validate: intNameInput => {
+                if (intNameInput) {
+                    return true;
+                } else {
+                    console.log('Please enter the Interns name!');
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name: 'id',
+            message: 'What is this Interns ID?',
+            validate: intIdInput => {
+                if (intIdInput) {
+                    return true;
+                } else {
+                    console.log('Please enter the Interns ID!');
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name: 'email',
+            message: 'What is this Interns email?',
+            validate: intEmailInput => {
+                if (intEmailInput) {
+                    return true;
+                } else {
+                    console.log('Please enter the Interns email address!');
+                    return false;
+                }
+            }
+        },
+        {
+            type: 'input',
+            name: 'school',
+            message: 'What school did this Intern attend?',
+            validate: schoolInput => {
+                if (schoolInput) {
+                    return true;
+                } else {
+                    console.log('Please enter this Interns school!');
+                    return false; 
+                }
+            }
+        }    
+    ])
+    .then( answer => {
+        let intern = new Intern(answer.name, answer.id, answer.email, answer.school);
+
+        teamMembers.push(intern);
+
+        console.log(intern);
+        console.log(teamMembers);
+    })
+    .then(createEmployee);
+};
+
+
 
 const createEmployee = function() {
     return inquirer.prompt([
@@ -117,18 +251,32 @@ const createEmployee = function() {
            console.log('Create an Engineer')
            createEngineer();
        }  
+       else if (answer.employeeType === 'Intern') {
+           console.log('Create an Intern');
+           createIntern();
+        }
+        else {
+            // return generatePage(employeeData)
+            console.log('Data received, Generating page!')
+            console.log(teamMembers);
+        }
+    });
+};
 
-        console.log('Create an Intern');
-        createIntern();
+const createPage = function (HTMLTemplate) {
+    fs.writeFile('./dist/index.html', HTMLTemplate, (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('Page successfully generated!!!');
+        }
     });
 };
 
 
-// at the end of these functions call createEmployee again 
-// function createEngineer();
-
-// function createIntern();
-
-
 createManager()
-    .then(createEmployee);
+// Then promises will be chained here that will take in the data that was received
+// after it takes in the date it outputs it to the page template file which will generate the html
+// afterwards that data will be returned and send into the createPage function which will create
+// the HTML file. 
+    
